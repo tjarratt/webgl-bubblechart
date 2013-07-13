@@ -1,124 +1,53 @@
 window.onload = function() {
-  var canvas = document.getElementsByTagName("canvas")[0];
-  canvas.width = 500;
-  canvas.height = 500;
+  var BubbleChart = (function() {
+    var camera;
+    var scene = new THREE.Scene();
+    var renderer = new THREE.WebGLRenderer();
 
-  // init webgl context
-  var context = canvas.getContext("experimental-webgl");
-  context.viewportWidth = canvas.width;
-  context.viewportHeight = canvas.height;
+    var bChart = function(containerId, data) {
+      this.data = data;
+      this.container = document.getElementById(containerId);
 
-  // init shaders
-  var fragmentShaderScript = document.getElementById("shader-fs").firstChild.nodeValue;
-  var vertexShaderScript = document.getElementById("shader-vs").firstChild.nodeValue;
+      var width = container.offsetWidth || 500;
+      var height = container.offsetHeight || 500;
 
-  var fragmentShader = context.createShader(context.FRAGMENT_SHADER);
-  context.shaderSource(fragmentShader, fragmentShaderScript);
-  context.compileShader(fragmentShader);
+      camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000, new THREE.MeshNormalMaterial());
+      camera.position.x = 105;
+      camera.position.y = 105;
+      camera.position.z = 255;
 
-  var vertexShader = context.createShader(context.VERTEX_SHADER);
-  context.shaderSource(vertexShader, vertexShaderScript);
-  context.compileShader(vertexShader);
+      renderer.setSize(width, height);
+      renderer.domElement.style.border = "1px solid black";
+      this.container.appendChild(renderer.domElement);
 
-  var program = context.createProgram();
-  context.attachShader(program, vertexShader);
-  context.attachShader(program, fragmentShader);
-  context.linkProgram(program);
+      var scale = 2.1;
+      var numSegments = 50;
+      data.forEach(function(d) {
+        var radius = d.size;
+        var bubble = new THREE.Mesh(new THREE.SphereGeometry(radius, numSegments, numSegments), new THREE.MeshNormalMaterial());
+        bubble.overdraw = true;
+        bubble.position.set(d.x * scale, d.y * scale, d.z);
+        console.log(d.x * scale, d.y * scale, d.z);
+        scene.add(bubble);
+      });
+    };
 
-  context.useProgram(program);
+    bChart.prototype.render = function() {
+      renderer.render(scene, camera);
+    };
 
-  program.vertexPositionAttribute = context.getAttribLocation(program, "aVertexPosition");
-  context.enableVertexAttribArray(program.vertexPositionAttribute);
+    return bChart;
+  })();
 
-  program.textureCoordAttribute = context.getAttribLocation(program, "aTextureCoord");
-  context.enableVertexAttribArray(program.textureCoordAttribute);
-
-  program.vertexNormalAttribute = context.getAttribLocation(program, "aVertexNormal");
-  context.enableVertexAttribArray(program.vertexNormalAttribute);
-
-  program.pMatrixUniform = context.getUniformLocation(program, "uPMatrix");
-  program.mvMatrixUniform = context.getUniformLocation(program, "uMVMatrix");
-  program.nMatrixUniform = context.getUniformLocation(program, "uNMatrix");
-  program.samplerUniform = context.getUniformLocation(program, "uSampler");
-  program.useLightingUniform = context.getUniformLocation(program, "uUseLighting");
-  program.ambientColorUniform = context.getUniformLocation(program, "uAmbientColor");
-  program.lightingDirectionUniform = context.getUniformLocation(program, "uLightingDirection");
-  program.directionalColorUniform = context.getUniformLocation(program, "uDirectionalColor");
-
-  // init buffers
-  var latitudeBands = 30;
-  var longitudeBands = 30;
-  var radius = 2;
-
-  var latNumber;
-  var vertexPositionData = [];
-  var normalData = [];
-  var textureCoordData = [];
-  for (latNumber = 0; latNumber <= latitudeBands; latNumber++) {
-    var theta = latNumber * Math.PI / latitudeBands;
-    var sinTheta = Math.sin(theta);
-    var cosTheta = Math.cos(theta);
-
-    for (var longNumber = 0; longNumber <= longitudeBands; longNumber++) {
-      var phi = longNumber * 2 * Math.PI / longitudeBands;
-      var sinPhi = Math.sin(phi);
-      var cosPhi = Math.cos(phi);
-
-      var x = cosPhi * sinTheta;
-      var y = cosTheta;
-      var z = sinPhi * sinTheta;
-      var u = 1 - (longNumber / longitudeBands);
-      var v = 1 - (latNumber / latitudeBands);
-
-      normalData.push(x);
-      normalData.push(y);
-      normalData.push(z);
-      textureCoordData.push(u);
-      textureCoordData.push(v);
-      vertexPositionData.push(radius * x);
-      vertexPositionData.push(radius * y);
-      vertexPositionData.push(radius * z);
-    }
+  var data = [];
+  for (var i = 0; i < 55; ++i) {
+    data.push({
+      size: 5 + Math.random() * 15,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      z: Math.random() * - 255
+    });
   }
-
-  var indexData = [];
-  for (latNumber = 0; latNumber < latitudeBands; latNumber++) {
-    for (var longNumber=0; longNumber < longitudeBands; longNumber++) {
-      var first = (latNumber * (longitudeBands + 1)) + longNumber;
-      var second = first + longitudeBands + 1;
-      indexData.push(first);
-      indexData.push(second);
-      indexData.push(first + 1);
-
-      indexData.push(second);
-      indexData.push(second + 1);
-      indexData.push(first + 1);
-    }
-  }
-
-  var moonVertexNormalBuffer = context.createBuffer();
-  context.bindBuffer(context.ARRAY_BUFFER, moonVertexNormalBuffer);
-  context.bufferData(context.ARRAY_BUFFER, new Float32Array(normalData), context.STATIC_DRAW);
-  moonVertexNormalBuffer.itemSize = 3;
-  moonVertexNormalBuffer.numItems = normalData.length / 3;
-
-  var moonVertexTextureCoordBuffer = context.createBuffer();
-  context.bindBuffer(context.ARRAY_BUFFER, moonVertexTextureCoordBuffer);
-  context.bufferData(context.ARRAY_BUFFER, new Float32Array(textureCoordData), context.STATIC_DRAW);
-  moonVertexTextureCoordBuffer.itemSize = 2;
-  moonVertexTextureCoordBuffer.numItems = textureCoordData.length / 2;
-
-  var moonVertexPositionBuffer = context.createBuffer();
-  context.bindBuffer(context.ARRAY_BUFFER, moonVertexPositionBuffer);
-  context.bufferData(context.ARRAY_BUFFER, new Float32Array(vertexPositionData), context.STATIC_DRAW);
-  moonVertexPositionBuffer.itemSize = 3;
-  moonVertexPositionBuffer.numItems = vertexPositionData.length / 3;
-
-  var moonVertexIndexBuffer = context.createBuffer();
-  context.bindBuffer(context.ELEMENT_ARRAY_BUFFER, moonVertexIndexBuffer);
-  context.bufferData(context.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), context.STATIC_DRAW);
-  moonVertexIndexBuffer.itemSize = 1;
-  moonVertexIndexBuffer.numItems = indexData.length;
-
-  // init textures
+  var chart = new BubbleChart('container', data);
+  chart.render();
 };
