@@ -35,29 +35,29 @@ window.onload = function() {
       });
     };
 
-    var lastTime;
-    var timeToAnimate = 1000;
-    var scaleFactor = Math.PI / 2.0 / timeToAnimate;
+    var radius = 0.00001;
+    var initial = {radius: 0};
+    var target = {radius: 1};
+    var tween = new TWEEN.Tween(initial).to(target, 3200).easing(
+      TWEEN.Easing.Elastic.Out
+    ).delay(2000
+    ).onUpdate(function() {
+      radius = this.radius;
+    }).start();
+
     function animate() {
-      lastTime = lastTime || (new Date().getTime());
-      var time = new Date().getTime();
-      var timeDiff = time - lastTime;
-
-      if (timeDiff > timeToAnimate) {
-        objects.forEach(function(o) {
-          o.scale.set(1, 1, 1);
-        });
-
-        return renderer.render(scene, camera);
-      }
-
-      var factor = Math.abs(Math.sin(timeDiff * scaleFactor));
       objects.forEach(function(o) {
-        o.scale.set(factor, factor, factor);
+        o.scale.set(radius, radius, radius);
       });
 
       renderer.render(scene, camera);
+
+      if (radius == 1) {
+        return;
+      }
+
       requestAnimationFrame(function() { animate(); });
+      TWEEN.update();
     };
 
     bChart.prototype.render = function(options) {
