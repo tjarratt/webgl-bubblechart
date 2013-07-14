@@ -31,6 +31,6 @@ to the `.animate()` call
 Requirements
 ------------
 
-* THREE.js[http://threejs.org/] : provides a simple interface to WebGL
-* TWEEN.js[https://github.com/sole/tween.js/] provides: interpolations for beautiful animations
-* Underscore.js[http://underscorejs.org/]
+* [THREE.js](http://threejs.org/) : provides a simple interface to WebGL
+* [TWEEN.js](https://github.com/sole/tween.js/) provides: interpolations for beautiful animations
+* [Underscore.js](http://underscorejs.org/)
