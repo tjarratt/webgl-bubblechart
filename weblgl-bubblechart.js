@@ -22,14 +22,36 @@ window.onload = function() {
       renderer.domElement.style.border = "1px solid black";
       this.container.appendChild(renderer.domElement);
 
-      var scale = 2.1;
+      var sizes = _.pluck(data, 'size');
+      var xValues = _.pluck(data, 'x');
+      var yValues = _.pluck(data, 'y');
+      var zValues = _.pluck(data, 'z');
+
+      var minSize = Math.min.apply({}, sizes) * 1.0;
+      var maxSize = Math.max.apply({}, sizes) * 1.0;
+
+      var minX = Math.min.apply({}, xValues);
+      var maxX = Math.abs(Math.max.apply({}, xValues));
+
+      var minY = Math.min.apply({}, yValues);
+      var maxY = Math.abs(Math.max.apply({}, yValues) * 1.0);
+
+      var minZ = Math.min.apply({}, zValues);
+      var maxZ = Math.abs(Math.max.apply({}, zValues) * 1.0);
+
+      var maxRadius = 10.0;
+      var minRadius = 5;
       var numSegments = 50;
       data.forEach(function(d) {
-        var radius = d.size;
+        var radius = (d.size - minSize) * maxRadius / maxSize + minRadius;
+        var scaledX = (d.x - minX) * 210.0 / maxX;
+        var scaledY = (d.y - minY) * 210.0 / maxY;
+        var scaledZ = (d.z - minZ) * -255.0 / maxZ;
+
         var bubble = new THREE.Mesh(new THREE.SphereGeometry(radius, numSegments, numSegments), new THREE.MeshNormalMaterial());
         bubble.overdraw = true;
-        bubble.position.set(d.x * scale, d.y * scale, d.z);
-        bubble.finalRadius = radius;
+        bubble.position.set(scaledX, scaledY, scaledZ);
+
         scene.add(bubble);
         objects.push(bubble);
       });
@@ -52,7 +74,7 @@ window.onload = function() {
 
       renderer.render(scene, camera);
 
-      if (radius == 1) {
+      if (radius == target.radius) {
         return;
       }
 
@@ -72,18 +94,4 @@ window.onload = function() {
 
     return bChart;
   })();
-
-  var data = [];
-  for (var i = 0; i < 55; ++i) {
-    // todo: it shouldn't matter what the units are here
-    // it doesn't make sense to hard code values in between
-    data.push({
-      size: 5 + Math.random() * 15,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      z: Math.random() * - 255
-    });
-  }
-  var chart = new BubbleChart('container', data);
-  chart.render({animate: true});
 };
