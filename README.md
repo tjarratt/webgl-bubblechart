@@ -34,3 +34,11 @@ Requirements
 * [THREE.js](http://threejs.org/) : provides a simple interface to WebGL
 * [TWEEN.js](https://github.com/sole/tween.js/) provides: interpolations for beautiful animations
 * [Underscore.js](http://underscorejs.org/)
+
+Supported Browsers
+------------------
+
+* Chrome (tested on v28.0)
+* Safari (tested on v5.1)
+*  nb: this only works in Safari if you enable WebGL from the Develop menu
+* Firefox (tested on v21)
