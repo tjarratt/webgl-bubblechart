@@ -2,7 +2,7 @@ WebGL BubbleCharts
 ==================
 
 An experiment in using webGL to create bubblecharts that are powerful, easy to use,
-and beautiful. Bubblecharts[http://en.wikipedia.org/wiki/Bubble_chart] are a common
+and beautiful. [Bubblecharts](http://en.wikipedia.org/wiki/Bubble_chart) are a common
 tool used to visualize data that is modeled as a 3-tuple of three values.
 
 Two values are commonly plotted on the x-y cartesian plane, and the third value is
